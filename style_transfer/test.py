@@ -5,6 +5,7 @@ sys.path.insert(0, BASEPATH)
 from os.path import join as pjoin
 import argparse
 import importlib
+import time
 
 from data_loader import process_single_bvh, process_single_json
 
@@ -31,6 +32,9 @@ def main(args):
     # Load experiment setting
     config.initialize(args)
 
+
+    t = time.time()
+
     # Trainer
     trainer = Trainer(config)
     trainer.to(config.device)
@@ -47,6 +51,11 @@ def main(args):
     output = trainer.test(co_data, st_data, status)
     foot_contact = output["foot_contact"][0].cpu().numpy()
     motion = output["trans"][0].detach().cpu().numpy()
+
+
+    elapsed = time.time() - t
+    print("Time spent for single motion style transfer: ", elapsed)
+
     output_dir = pjoin(config.main_dir, 'test_output') if args.output_dir is None else args.output_dir
     save_bvh_from_network_output(motion, output_path=pjoin(output_dir, 'raw.bvh'))
     remove_fs(motion, foot_contact, output_path=pjoin(output_dir, 'fixed.bvh'))
